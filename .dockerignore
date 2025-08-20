@@ -1,0 +1,21 @@
+.vscode/
+.history/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+*.tmp
+*.log
+
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.pyc
+
+# Environment variables and other temporary files
+.env
+.dockerignore
+*.log

@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=reservation_db
+      - POSTGRES_USER=reservation_user
+      - POSTGRES_PASSWORD=dj456ama312eg
+    ports:
+    - "5433:5432"
+    networks:
+      - app-network
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py shell -c \"import scripts.load_data; scripts.load_data.DataLoder().load()\" &&
+             gunicorn reservation_backend.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=reservation_backend.settings
+      - ALLOWED_HOSTS=*
+      - DB_HOST=db
+      - DB_NAME=reservation_db
+      - DB_USER=reservation_user
+      - DB_PASSWORD=dj456ama312eg
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:1.19.0-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - web
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
