@@ -1,5 +1,3 @@
-import os
-
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
@@ -9,8 +7,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from base_data.models import City, Job
 from reservation.fields import PercentageField
-from reservation_backend.settings import MEDIA_ROOT
-
 
 class PaymentPolicy(models.Model):
     reservation_percentage = PercentageField()

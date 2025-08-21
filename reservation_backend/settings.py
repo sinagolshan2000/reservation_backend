@@ -167,6 +167,15 @@ GRAPH_MODELS = {
 
 PHONENUMBER_DEFAULT_REGION = "IR"
 
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_BEAT_SCHEDULE = {
+    "deactivate-expired-appointments": {
+        "task": "appointment.tasks.deactivate_expired_appointments",
+        "schedule": 60.0,  # every 60 seconds
+    },
+}
+
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Reservation API',
     'DESCRIPTION': 'Documentation for your API.',

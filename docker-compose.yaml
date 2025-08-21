@@ -10,15 +10,24 @@ services:
       - POSTGRES_USER=reservation_user
       - POSTGRES_PASSWORD=dj456ama312eg
     ports:
-    - "5433:5432"
+      - "5433:5432"
+    networks:
+      - app-network
+
+  redis:
+    image: redis:6
+    ports:
+      - "6380:6379"
     networks:
       - app-network
 
   web:
     build: .
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     command: >
-      sh -c "python manage.py migrate &&
-             python manage.py shell -c \"import scripts.load_data; scripts.load_data.DataLoder().load()\" &&
+      sh -c "python manage.py shell -c \"import scripts.load_data; scripts.load_data.DataLoder().load()\" &&
              gunicorn reservation_backend.wsgi:application --bind 0.0.0.0:8000"
     volumes:
       - .:/app
@@ -26,9 +35,44 @@ services:
       - "8000:8000"
     depends_on:
       - db
+      - redis
     environment:
       - DJANGO_SETTINGS_MODULE=reservation_backend.settings
       - ALLOWED_HOSTS=*
+      - DB_HOST=db
+      - DB_NAME=reservation_db
+      - DB_USER=reservation_user
+      - DB_PASSWORD=dj456ama312eg
+    networks:
+      - app-network
+
+  celery:
+    build: .
+    command: celery -A reservation_backend worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=reservation_backend.settings
+      - DB_HOST=db
+      - DB_NAME=reservation_db
+      - DB_USER=reservation_user
+      - DB_PASSWORD=dj456ama312eg
+    networks:
+      - app-network
+
+  celery-beat:
+    build: .
+    command: celery -A reservation_backend beat -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - redis
+    environment:
+      - DJANGO_SETTINGS_MODULE=reservation_backend.settings
       - DB_HOST=db
       - DB_NAME=reservation_db
       - DB_USER=reservation_user
